@@ -8,6 +8,7 @@ namespace ActivePlus.Service
 {
     public class APService : IAPService
     {
+        /// <inheritdoc />
         public virtual int Task1(IEnumerable<int> array)
         {
             if(array == null)
@@ -36,6 +37,7 @@ namespace ActivePlus.Service
             return sum;
         }
 
+        /// <inheritdoc />
         public LinkedList<byte> Task2(LinkedList<byte> list1, LinkedList<byte> list2)
         {
             if(list1 == null || !list1.Any())
@@ -43,37 +45,32 @@ namespace ActivePlus.Service
             if(list2 == null || !list2.Any())
                 throw new ArgumentNullException("The input array " + nameof(list2) + " is null or empty");
 
-            byte list1Node, list2Node;
+            LinkedListNode<byte> list1Node = list1.Last;
+            LinkedListNode<byte> list2Node = list2.Last;
             var listResult = new LinkedList<byte>();
             byte decimals = 0;
             do
             {
-                if(list1.Any())
-                    list1Node = list1.Last();
-                else
-                    list1Node = 0;
-
-                if(list2.Any())
-                    list2Node = list2.Last();
-                else
-                    list2Node = 0;
-
-                if(list1Node > 9 || list1Node < 0)
+                var list1Value = 
+                    list1Node != null ? list1Node.Value : 0;
+                var list2Value = 
+                    list2Node != null ? list2Node.Value : 0;
+                if(list1Value > 9 || list1Value < 0)
                    throw new ArgumentException("Wrong element at " + nameof(list1) + " list");
-                if(list2Node > 9 || list2Node < 0)
+                if(list2Value > 9 || list2Value < 0)
                    throw new ArgumentException("Wrong element at " + nameof(list2) + " list");
 
-                byte res = (byte)(list1Node + list2Node);
-                listResult.AddFirst((byte)(res % 10 + decimals));
+                byte res = (byte)(list1Value + list2Value + decimals);
+                listResult.AddFirst((byte)(res % 10));
                 decimals = (byte)(res / 10);
 
-                if(list1.Any())
-                    list1.RemoveLast();
+                if(list1Node != null)
+                    list1Node = list1Node.Previous;
 
-                if(list2.Any())
-                    list2.RemoveLast();
+                if(list2Node!=null)
+                    list2Node = list2Node.Previous;
             }
-            while(list1.Any() || list2.Any());
+            while(list1Node != null || list2Node != null);
             if(decimals > 0)
                 listResult.AddFirst((byte)(decimals));
 
@@ -81,6 +78,7 @@ namespace ActivePlus.Service
             return listResult;
         }
 
+        /// <inheritdoc />
         public bool Task3(string phrase)
         {
             if(phrase.Length == 0)
@@ -97,27 +95,27 @@ namespace ActivePlus.Service
 
             reversedPhrase = sb.ToString();
 
+            // very incomplete list of symbols!
+            var symbolsToSkip = new String[]{" ", "-", ",", "."}; 
+
             var enumeratorL = StringInfo.GetTextElementEnumerator(phrase);
             var enumeratorR = StringInfo.GetTextElementEnumerator(reversedPhrase);
             while(enumeratorL.MoveNext() && enumeratorR.MoveNext())
             {
-                while((string)enumeratorL.Current == " " && enumeratorL.MoveNext())
+                while(symbolsToSkip.Contains((string)enumeratorL.Current) && enumeratorL.MoveNext())
                 {
                     ;
                 }
-                while((string)enumeratorR.Current == " " && enumeratorR.MoveNext())
+                while(symbolsToSkip.Contains((string)enumeratorR.Current) && enumeratorR.MoveNext())
                 {
                     ;
                 }
                 
-                if((string)enumeratorL.Current != (string)enumeratorR.Current)
+                if(((string)enumeratorL.Current).ToLower() != ((string)enumeratorR.Current).ToLower())
                     return false;
                 
             }
             return true;
-
-
         }
-   
     }
 }
